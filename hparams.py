@@ -30,7 +30,7 @@ hparams = Struct(**{
     "quantize_channels":65536,  # 65536 or 256
 
     # Audio:
-    "sample_rate":22050,
+    "sample_rate":16000,
     # this is only valid for mulaw is True
     "silence_threshold":2,
     "num_mels":80,
@@ -68,6 +68,8 @@ hparams = Struct(**{
     "kernel_size":3,
     # If True, apply weight normalization as same as DeepVoice3
     "weight_normalization":True,
+
+    "legacy":True,
 
     # Local conditioning (set negative value to disable))
     "cin_channels":80,

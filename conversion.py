@@ -39,7 +39,7 @@ def store_data(out_dir, raw_samples, target_samples, Y, X, idx):
     np.save(os.path.join(out_dir,'target_mel_{:05d}.npy'.format(idx)), Y)
     np.save(os.path.join(out_dir,'raw_mel_{:05d}.npy'.format(idx)), X)
 
-def convert_and_store_data(data_path='/root/dataset/LJSpeech-1.1/wavs/', out_dir="/root/dataset/ljspeech", sr=8000, sr_target=22050, chunk_len = 20480, len_data_stored=1310):
+def convert_and_store_data(data_path='./dataset/LJSpeech-1.1/wavs/', out_dir="./dataset/ljspeech", sr=8000, sr_target=22050, chunk_len = 20480, sample_per_files=131):
     print('Check if data exist...')
     if os.path.isfile(os.path.join(out_dir,'data.json')):
         print('Numpy chuncks yet exists.\nFinished!')
@@ -52,6 +52,7 @@ def convert_and_store_data(data_path='/root/dataset/LJSpeech-1.1/wavs/', out_dir
     target_samples = []
     Y = []
     X = []
+    count_sample = 0
     n_sample = 0
     data_idx = 0
 
@@ -95,9 +96,9 @@ def convert_and_store_data(data_path='/root/dataset/LJSpeech-1.1/wavs/', out_dir
         n_sample += 1
 
         # Store to file
-        if (len(raw_samples) >= len_data_stored):
+        if n_sample % sample_per_files == 0:
             store_data(out_dir, raw_samples, target_samples, Y, X, data_idx)
-            print('Stored {:05d} partial.'.format(data_idx))
+            # print('Stored {:05d} partial.'.format(data_idx))
             raw_samples = []
             target_samples = []
             Y = []
@@ -105,7 +106,7 @@ def convert_and_store_data(data_path='/root/dataset/LJSpeech-1.1/wavs/', out_dir
             data_idx += 1
 
     # Store last chucnks of samples
-    if (len(raw_samples)>0):
+    if n_sample % sample_per_files > 0:
         store_data(out_dir, raw_samples, target_samples, Y, X, data_idx)
 
     data = {
@@ -113,24 +114,15 @@ def convert_and_store_data(data_path='/root/dataset/LJSpeech-1.1/wavs/', out_dir
         "sample_rate" : sr,
         "sample_rate_target" : sr_target,
         "chunk_len" : chunk_len,
+        "sample_per_files" : sample_per_files,
         "timestamp" : time.time()
     }
 
     with open(os.path.join(out_dir,'data.json'), 'w') as f:
         json.dump(data, f)
+    with open(os.path.join(out_dir,'sample_index.json'), 'w') as f:
+        json.dump(data, f)
     print('Finished!')
-
-def load_stored_data(idx, data_path='/root/dataset/ljspeech'):
-    raw_samples = np.load(os.path.join(data_path,'raw_samples_{:05d}.npy'.format(idx))).astype(np.float32)
-    raw_mel = np.load(os.path.join(data_path,'raw_mel_{:05d}.npy'.format(idx))).astype(np.float32)
-    target_samples = np.load(os.path.join(data_path,'target_samples_{:05d}.npy'.format(idx))).astype(np.float32)
-    target_mel = np.load(os.path.join(data_path,'target_mel_{:05d}.npy'.format(idx))).astype(np.float32)
-
-    with open(os.path.join(data_path,'data.json')) as f:
-        data = json.load(f)
-
-    return (raw_samples, raw_mel, target_samples, target_mel, data['sr'], data['sr_target'], data['chunck_len'], data['n_samples'])
-
 
 
 if True:
